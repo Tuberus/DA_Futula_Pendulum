@@ -21,19 +21,6 @@ extern void closeRtEnvStore();
 extern void Mac2NVS(uint32_t aFeatures);
 extern void CheckNodeLock();
 
-extern "C" void Monitor(void* arg)
-{
-    while (1) {
-        vTaskDelay(pdMS_TO_TICKS(20));
-        if (ua0->acqON) {
-            ua0->WriteSvF(1, mpu.getAccelX());
-            ua0->WriteSvF(2, mpu.getAccelY());
-            ua0->WriteSvF(3, mpu.getAccelZ());
-            ua0->Flush();
-        }
-    }
-}
-
 void CommandLoop()
 {
     while (1) {

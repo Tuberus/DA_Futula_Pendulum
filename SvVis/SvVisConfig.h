@@ -7,9 +7,9 @@ Com:  COM4  500000
 
 // Kanal Namen
 ChannelNames:
-	stick
-	gyro
-	gas
+	X
+	Y
+	Z
 	
 F_SAMPLE: 50
 
@@ -20,7 +20,7 @@ BarScale: -2000 2000
 
 // Graphen ( Kurven )
 Graphs:
-	stick Y1
-	gyro  Y1
-	gas   Y1
+	X Y1
+	Y  Y1
+	Z   Y1
 

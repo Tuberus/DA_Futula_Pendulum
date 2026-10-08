@@ -22,34 +22,23 @@ void CommandLoop()
       if (dispMode == 2)
         ua0.SvMessage("Disp Gyro");
     }
-    if (cmd == 3) {
-      monOn = false;
-       // 0:2g .... 3:16g
-       mpu.setAccelRange(ua0.ReadI16());
-      monOn = true;
-      ua0.SvMessage("acc range");
-    }
-    else if (cmd == 50) {
-      esp_restart();
-    }
   }
 }
 
 void DispAcc()
 {
   mpu.getAccel();
-  printf("Acc: X=%d, Y=%d, Z=%d\n", mpu.acc[0], mpu.acc[1], mpu.acc[2]);
-  ua0.WriteSvI16(1, mpu.acc[0]);
-  ua0.WriteSvI16(2, mpu.acc[1]);
-  ua0.WriteSvI16(3, mpu.acc[2]);
+  ua0.WriteSvI16(1, mpu.getAccelX());
+  ua0.WriteSvI16(2, mpu.getAccelY());
+  ua0.WriteSvI16(3, mpu.getAccelZ());
 }
 
 void DispGyro()
 {
   mpu.getGyro();
-  ua0.WriteSvI16(1, mpu.gyro[0]);
-  ua0.WriteSvI16(2, mpu.gyro[1]);
-  ua0.WriteSvI16(3, mpu.gyro[2]);
+  ua0.WriteSvI16(1, mpu.getGyroX());
+  ua0.WriteSvI16(2, mpu.getGyroY());
+  ua0.WriteSvI16(3, mpu.getGyroY());
 }
 
 extern "C" void Monitor(void* arg)
@@ -80,7 +69,7 @@ extern "C" void app_main(void)
   
   mpu.Init();
   InitUart(UART_NUM_0, 500000);
-  xTaskCreate(Monitor, "Monitor", 2048, NULL, 10, NULL);
+  xTaskCreate(Monitor, "Monitor", 4096, NULL, 10, NULL);
   CommandLoop();
 }
 
