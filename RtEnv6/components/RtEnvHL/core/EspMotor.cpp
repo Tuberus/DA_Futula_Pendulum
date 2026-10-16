@@ -47,18 +47,11 @@ void Motor::setPow2(float aPow)
 
 void Motor::setDirPin(bool dir)
 {
-  if (dir)
-    if (!inv)
-      gpio_set_level((gpio_num_t)_fwd, 1);
-    else
-      gpio_set_level((gpio_num_t)_fwd, 0);
-  else
-    if (!inv)
-      gpio_set_level((gpio_num_t)_fwd, 0);
-    else
-      gpio_set_level((gpio_num_t)_fwd, 1);
+  bool lvl = (dir != inv);
+  gpio_set_level((gpio_num_t)_fwd, lvl ? 1 : 0);
+  if (_rev != -1)
+    gpio_set_level((gpio_num_t)_rev, lvl ? 0 : 1);
 }
-
 
 void RateLim::CalcOneStep()
 {

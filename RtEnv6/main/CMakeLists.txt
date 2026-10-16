@@ -1,5 +1,5 @@
 
-idf_component_register( SRCS "MPUTEST.cpp"
+idf_component_register( SRCS "MPUwKAL.cpp"
                              
   INCLUDE_DIRS "." 
                "../components/dsp" 
