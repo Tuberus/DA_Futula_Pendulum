@@ -1,8 +1,10 @@
-
 #pragma once
 
+#include "RTEnvHL.h"
 #include "TimerHL.h"
-#include "math.h"
+#include <cmath>
+#include "Features.h"
+#include "driver/gpio.h"
 
 class RcServo {
 public:
@@ -39,7 +41,7 @@ public:
 private:
   int _pin;
   PwmHL hpwm;
-  static PwmTim tim;
+  inline static PwmTim tim;
 };
 
 
@@ -49,14 +51,33 @@ public:
   float dir;
   bool inv;
 public:
-  static void InitTimer();
-  static void StartTimer();
+  static void InitTimer()
+  {
+    ChkFeature2(FEAT_SEM);
+    tim = InitPwmTimer(0, 1000000, 1000);
+  }
+
+  static void StartTimer()
+  {
+    ChkFeature2(FEAT_SEM);
+    ::StartPwmTimer(tim);
+  }
+
   Motor(int aPwm, int aFwd, int aRev=-1)
   {
     _pwm = aPwm; _fwd = aFwd; _rev = aRev;
     pow = 0; dir = 0; inv = false;
   }
-  void Init();
+
+  void Init()
+  {
+    ChkFeature2(FEAT_SEM);
+    hpwm = InitPwm(tim, _pwm);
+    GpIoInit(1ULL << _fwd);
+    if (_rev != -1)
+      GpIoInit(1ULL << _rev);
+  }
+
   void setPow(float aPow)
   {
     if (_rev == -1)
@@ -76,12 +97,36 @@ public:
   }
   
   // Tumbler Motor
-  void setPow2(float aPow);
-  void setDirPin(bool dir);
+  void setPow2(float aPow)
+  {
+    if (aPow > 0.95) aPow = 0.95;
+    if (aPow < -0.95) aPow = -0.95;
+    pow = aPow;
+    if (aPow >= 0) {
+      setDirPin(false);
+    }
+    else {
+      aPow = -aPow;
+      setDirPin(true);
+    }
+    SetPwPercent(hpwm, aPow);
+    if (pow > 0) dir = 1.0;
+    else if (pow < 0) dir = -1.0;
+    else dir = 0.0;
+  }
+
+  void setDirPin(bool dir)
+  {
+    bool lvl = (dir != inv);
+    gpio_set_level((gpio_num_t)_fwd, lvl ? 1 : 0);
+    if (_rev != -1)
+      gpio_set_level((gpio_num_t)_rev, lvl ? 0 : 1);
+  }
+
 private:
   int _pwm, _fwd, _rev;
   PwmHL hpwm;
-  static PwmTim tim;
+  inline static PwmTim tim;
 };
 
 
@@ -131,7 +176,28 @@ public:
     if (aRate == 0) on = 0;
     _rate = aRate / F_SAMPLE;
   }
-  void CalcOneStep();
+  void CalcOneStep()
+  {
+    goesUp = 0;
+    if (!on) {
+      out = in; return;
+    }
+    if (fabs(out - in) <= _rate) {
+      out = in; return;
+    }
+    if (in > 0 && in > out)
+      goesUp = 1;
+    if (in < 0 && in < out)
+      goesUp = 1;
+    if (in > out)
+    {
+      out += _rate;
+    }
+    else
+    {
+      out -= _rate;
+    }
+  }
 public:
   float _rate;
 };

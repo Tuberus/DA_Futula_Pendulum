@@ -15,15 +15,17 @@ void CommandLoop()
         cmd = ua0.GetCommand();
         if (cmd == 2)
         {
-            motPow = 0.5f; // Oder ua0.ReadF()
-            mot.setPow2(motPow);
-            ua0.SvMessage("Test geschw");
+            mot.setPow2(ua0.ReadF());
+            ua0.SvMessage("Motor 0.2");
         }
         if (cmd == 3)
         {
-            motPow = 0.0f;
             mot.setPow2(0.0f);
             ua0.SvMessage("Stop");
+        }
+        if(cmd == 4){
+            enc.cnt = 0.0f;
+            ua0.SvMessage("Enc Reset");
         }
     }
 }
@@ -34,12 +36,10 @@ extern "C" void Monitor(void *arg)
     {
         vTaskDelay(1);
         
-        enc.CalcDiff(); 
-
         if (ua0.acqON)
         {
-            ua0.WriteSvI16(1, motPow * 1000);
-            ua0.WriteSvI16(2, enc.getFrequ());
+            ua0.WriteSvI16(1, motPow);
+            ua0.WriteSvI16(2, enc.cnt);
             ua0.Flush();
         }
     }

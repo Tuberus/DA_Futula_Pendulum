@@ -1,17 +1,29 @@
-Com:  COM3  500000
 
+// Achtung!! Keine Kommentare innerhalb der Sections
+// Com Schnittstelle 115200
+// Com:  COM4 500000
+IP: 192.168.4.1
+
+// Kanal Namen
 ChannelNames:
-	AccAngle
-	GySum
-	ComplAngle
+	encL
+	frequ
+	ang
+	
+F_SAMPLE: 300
 
-F_SAMPLE: 200
+// Y-Scales
+Y1Scale: -500 500
+Y2Scale:  -500 2000
+BarScale: -2000 2000
 
-Y1Scale:  -1000 1000
-Y2Scale:  -1000 1000
-BarScale: -1000 1000
-
+// Graphen ( Kurven )
 Graphs:
-	AccAngle   Y1
-	GySum      Y1
-	ComplAngle Y1
+	encL  Y2
+	frequ Y1
+	ang   Y1
+end
+
+
+
+

@@ -7,10 +7,10 @@
 const int PWA = 25, AI1 = 26, AI2 = 27;
 const int ENC_A = 32, ENC_B = 33;
 
-Motor mot(PWA, AI1, AI2);
-Encoder2 enc(ENC_A, ENC_B);
+inline Motor mot(PWA, AI1, AI2);
+inline Encoder2 enc(ENC_A, ENC_B);
 
-void InitMotors()
+inline void InitMotors()
 {
   Motor::InitTimer();
   mot.Init();

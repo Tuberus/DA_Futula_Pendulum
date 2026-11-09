@@ -124,36 +124,26 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\app\basic\RpmTest2.cpp" />
     <ClCompile Include="..\RtEnv6\components\RtEnvHL\commu\softap_hl.c" />
     <ClCompile Include="..\RtEnv6\components\RtEnvHL\commu\station_hl2.c" />
-    <ClCompile Include="..\RtEnv6\components\RtEnvHL\commu\SvProtocol3.cpp" />
-    <ClCompile Include="..\RtEnv6\components\RtEnvHL\commu\TmbMenues.cpp" />
-    <ClCompile Include="..\RtEnv6\components\RtEnvHL\core\Encoder2.cpp" />
-    <ClCompile Include="..\RtEnv6\components\RtEnvHL\core\EspMotor.cpp" />
-    <ClCompile Include="..\RtEnv6\components\RtEnvHL\core\ImuAlgo.cpp" />
-    <ClCompile Include="..\RtEnv6\components\RtEnvHL\core\MPU_Esp.cpp" />
-    <ClCompile Include="..\RtEnv6\components\RtEnvHL\core\NodeLock.cpp" />
-    <ClCompile Include="..\RtEnv6\components\RtEnvHL\core\RTEnvHL.cpp" />
     <ClCompile Include="..\RtEnv6\components\RtEnvHL\core\TimerHL.c" />
-    <ClCompile Include="..\RtEnv6\components\RtEnvHL\led_strip\LedStripHL.cpp" />
     <ClCompile Include="browse_prj.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\RtEnv6\components\RtEnvHL\commu\SvProtocol3.h" />
-    <ClInclude Include="..\RtEnv6\components\RtEnvHL\commu\TmbMenues.h" />
-    <ClInclude Include="..\RtEnv6\components\RtEnvHL\commu\TTMailBox.h" />
+    <ClInclude Include="..\RtEnv6\components\RtEnvHL\core\ButtonHandler.h" />
     <ClInclude Include="..\RtEnv6\components\RtEnvHL\core\ControlBasics.h" />
     <ClInclude Include="..\RtEnv6\components\RtEnvHL\core\Encoder2.h" />
     <ClInclude Include="..\RtEnv6\components\RtEnvHL\core\EspMotor.h" />
     <ClInclude Include="..\RtEnv6\components\RtEnvHL\core\Features.h" />
-    <ClInclude Include="..\RtEnv6\components\RtEnvHL\core\ImuAlgo.h" />
+    <ClInclude Include="..\RtEnv6\components\RtEnvHL\core\KalIMUOff.h" />
+    <ClInclude Include="..\RtEnv6\components\RtEnvHL\core\MotorSetup.h" />
     <ClInclude Include="..\RtEnv6\components\RtEnvHL\core\MPU_Esp.h" />
     <ClInclude Include="..\RtEnv6\components\RtEnvHL\core\MPU_Regs.h" />
     <ClInclude Include="..\RtEnv6\components\RtEnvHL\core\NodeLock.h" />
     <ClInclude Include="..\RtEnv6\components\RtEnvHL\core\RTEnvHL.h" />
     <ClInclude Include="..\RtEnv6\components\RtEnvHL\core\TimerHL.h" />
-    <ClInclude Include="..\RtEnv6\components\RtEnvHL\led_strip\LedStripHL.h" />
+    <ClInclude Include="..\RtEnv6\components\RtEnvHL\core\UsDist.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

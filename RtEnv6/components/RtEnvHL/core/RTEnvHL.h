@@ -1,24 +1,68 @@
-
 #pragma once
 
 #include <stdio.h>
 #include <string.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "driver/gpio.h"
 #include "driver/uart.h"
 #include "esp_timer.h"
+#include "esp_rom_sys.h"
 #include "esp_adc/adc_oneshot.h"
 #include "driver/dac_oneshot.h"
 #include "TimerHL.h"
+#include "Features.h"
+#include "FloatFilt.h"
+#include "NodeLock.h"
+#include "SvProtocol3.h"
 
-void LibVers();
-void InitRtEnvHL(bool doBink=true);
+inline void LibVers()
+{
+  printf("RtEnvHL V2.1\n");
+}
 
-void MyDelay(int aMSec);
+inline void MyDelay(int aMSec)
+{
+  vTaskDelay(aMSec / portTICK_PERIOD_MS);
+}
+
+inline void InitRtEnvHL([[maybe_unused]] bool doBlink=false)
+{
+  LibVers();
+  SvProtocol3::Init();
+  InitNVS();
+  openRtEnvStore();
+  CheckNodeLock();
+  closeRtEnvStore();
+}
 
 // core=-1 any core
-TaskHandle_t createTask( TaskFunction_t func,
-                         const char* name, int stackSz, int prio, int core=-1);
+inline TaskHandle_t createTask(TaskFunction_t func,
+                               const char* name, int stackSz, int prio, int core=-1)
+{
+  TaskHandle_t han;
+  if( core==-1 )
+    xTaskCreate(func, name, stackSz, NULL, prio, &han);
+  else
+    xTaskCreatePinnedToCore(func, name, stackSz, NULL, prio, &han, core);
+  return han;
+}
 
-void GpIoInit(uint64_t aBitMask, bool aIn=false);
+inline void GpIoInit(uint64_t aBitMask, bool aIn=false)
+{
+  ChkFeature2(FEAT_SEM);
+  gpio_config_t conf = {};
+  conf.pin_bit_mask = aBitMask;
+  conf.mode = GPIO_MODE_OUTPUT;
+  conf.pull_up_en = GPIO_PULLUP_DISABLE;
+  conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+  conf.intr_type = GPIO_INTR_DISABLE;
+  if (aIn) {
+    conf.mode = GPIO_MODE_INPUT;
+    conf.pull_up_en = GPIO_PULLUP_ENABLE;
+  }
+  ESP_ERROR_CHECK(gpio_config(&conf));
+}
 
 inline void GpIoDir(gpio_num_t aNum, gpio_mode_t aMode)
 {
@@ -102,15 +146,26 @@ private:
 class Adc2 {
 private:
   adc_channel_t _ch;
-  static adc_oneshot_unit_handle_t _unit2;
+  inline static adc_oneshot_unit_handle_t _unit2 = 0;
 public:
-  static adc_atten_t atten;
+  inline static adc_atten_t atten = ADC_ATTEN_DB_11;
 public:
   Adc2(adc_channel_t aChan)
   {
     _ch = aChan;
   }
-  void Init();
+  void Init()
+  {
+    if (_unit2 == 0) {
+      adc_oneshot_unit_init_cfg_t inicfg = {};
+      inicfg.unit_id = ADC_UNIT_2;
+      ESP_ERROR_CHECK(adc_oneshot_new_unit(&inicfg, &_unit2));
+    }
+    adc_oneshot_chan_cfg_t cfg2 = {};
+    cfg2.atten = Adc2::atten;
+    cfg2.bitwidth = ADC_BITWIDTH_DEFAULT;
+    ESP_ERROR_CHECK(adc_oneshot_config_channel(_unit2, _ch, &cfg2));
+  }
   int read()
   {
     int val;
@@ -122,9 +177,9 @@ public:
 class Adc1 {
 public:
   adc_channel_t _ch;
-  static adc_oneshot_unit_handle_t _unit1;
+  inline static adc_oneshot_unit_handle_t _unit1 = 0;
 public:
-  static adc_atten_t atten;
+  inline static adc_atten_t atten = ADC_ATTEN_DB_11;
 public:
   Adc1(adc_channel_t aChan)
   {
@@ -134,7 +189,18 @@ public:
   {
     _ch = (adc_channel_t)0;
   }
-  void Init();
+  void Init()
+  {
+    if (_unit1 == 0) {
+      adc_oneshot_unit_init_cfg_t inicfg = {};
+      inicfg.unit_id = ADC_UNIT_1;
+      ESP_ERROR_CHECK(adc_oneshot_new_unit(&inicfg, &_unit1));
+    }
+    adc_oneshot_chan_cfg_t cfg2 = {};
+    cfg2.atten = Adc1::atten;
+    cfg2.bitwidth = ADC_BITWIDTH_DEFAULT;
+    ESP_ERROR_CHECK(adc_oneshot_config_channel(_unit1, _ch, &cfg2));
+  }
   int read()
   {
     int val;
@@ -152,9 +218,8 @@ public:
   }
   void Init()
   {
-    dac_oneshot_config_t cfg = {
-    .chan_id = _ch,
-    };
+    dac_oneshot_config_t cfg = {};
+    cfg.chan_id = _ch;
     ESP_ERROR_CHECK(dac_oneshot_new_channel(&cfg, &_hdac));
   }
   void write(int aVal)
@@ -170,21 +235,4 @@ private:
   dac_channel_t _ch;
   dac_oneshot_handle_t _hdac;
 };
-
-
-class UsDist {
-  gpio_num_t trg, echo;
-  StopWatch stw;
-public:
-  UsDist(int aTrg, int aEcho);
-  void Init();
-  void setAlpha(float alpha);
-  void startMeas();
-  void echoISR();
-  float getFilt();
-public:
-  uint32_t dist;
-};
-
-
 
