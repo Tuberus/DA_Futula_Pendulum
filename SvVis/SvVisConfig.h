@@ -1,14 +1,13 @@
 
 // Achtung!! Keine Kommentare innerhalb der Sections
 // Com Schnittstelle 115200
-// Com:  COM4 500000
-IP: 192.168.4.1
+Com:  COM4 500000
+//IP: 192.168.4.1
 
 // Kanal Namen
 ChannelNames:
-	encL
-	frequ
-	ang
+	phi
+	Enc
 	
 F_SAMPLE: 300
 
@@ -19,9 +18,8 @@ BarScale: -2000 2000
 
 // Graphen ( Kurven )
 Graphs:
-	encL  Y2
-	frequ Y1
-	ang   Y1
+	phi  Y2
+	Enc	 Y1
 end
 
 

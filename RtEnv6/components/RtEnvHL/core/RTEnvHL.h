@@ -26,7 +26,7 @@ inline void MyDelay(int aMSec)
   vTaskDelay(aMSec / portTICK_PERIOD_MS);
 }
 
-inline void InitRtEnvHL([[maybe_unused]] bool doBlink=false)
+inline void InitRtEnvHL([[maybe_unused]] bool doBlink = false)
 {
   LibVers();
   SvProtocol3::Init();
@@ -38,17 +38,17 @@ inline void InitRtEnvHL([[maybe_unused]] bool doBlink=false)
 
 // core=-1 any core
 inline TaskHandle_t createTask(TaskFunction_t func,
-                               const char* name, int stackSz, int prio, int core=-1)
+                               const char *name, int stackSz, int prio, int core = -1)
 {
   TaskHandle_t han;
-  if( core==-1 )
+  if (core == -1)
     xTaskCreate(func, name, stackSz, NULL, prio, &han);
   else
     xTaskCreatePinnedToCore(func, name, stackSz, NULL, prio, &han, core);
   return han;
 }
 
-inline void GpIoInit(uint64_t aBitMask, bool aIn=false)
+inline void GpIoInit(uint64_t aBitMask, bool aIn = false)
 {
   ChkFeature2(FEAT_SEM);
   gpio_config_t conf = {};
@@ -57,7 +57,8 @@ inline void GpIoInit(uint64_t aBitMask, bool aIn=false)
   conf.pull_up_en = GPIO_PULLUP_DISABLE;
   conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
   conf.intr_type = GPIO_INTR_DISABLE;
-  if (aIn) {
+  if (aIn)
+  {
     conf.mode = GPIO_MODE_INPUT;
     conf.pull_up_en = GPIO_PULLUP_ENABLE;
   }
@@ -74,37 +75,44 @@ inline void GpIoLevel(gpio_num_t aNum, uint32_t aVal)
   gpio_set_level(aNum, aVal);
 }
 
-class GpIoOut {
+class GpIoOut
+{
 public:
   uint16_t pin;
   uint16_t val;
+
 public:
   GpIoOut(int aPin)
   {
-    pin = aPin; val = 0;
+    pin = aPin;
+    val = 0;
   }
 
   void Init()
   {
-    GpIoInit(1ULL<<pin, false);
+    GpIoInit(1ULL << pin, false);
   }
 
   void Set(int aVal)
   {
-    val = aVal; gpio_set_level((gpio_num_t)pin,val);
+    val = aVal;
+    gpio_set_level((gpio_num_t)pin, val);
   }
 
   void Toggle()
   {
-    if (val) Set(0);
-    else Set(1);
+    if (val)
+      Set(0);
+    else
+      Set(1);
   }
 };
 
-
-class GpIoIn {
+class GpIoIn
+{
 public:
   uint32_t pin;
+
 public:
   GpIoIn(int aPin)
   {
@@ -112,7 +120,7 @@ public:
   }
   void Init()
   {
-    GpIoInit(1ULL<<pin, true);
+    GpIoInit(1ULL << pin, true);
   }
   int get()
   {
@@ -120,14 +128,15 @@ public:
   }
 };
 
-
-class StopWatch {
+class StopWatch
+{
 public:
   int64_t dt;
+
 public:
   StopWatch()
   {
-    _t1 = dt = 0; 
+    _t1 = dt = 0;
   }
   void Reset()
   {
@@ -138,17 +147,20 @@ public:
     dt = esp_timer_get_time() - _t1;
     return dt;
   }
+
 private:
   int64_t _t1;
 };
 
-
-class Adc2 {
+class Adc2
+{
 private:
   adc_channel_t _ch;
   inline static adc_oneshot_unit_handle_t _unit2 = 0;
+
 public:
   inline static adc_atten_t atten = ADC_ATTEN_DB_11;
+
 public:
   Adc2(adc_channel_t aChan)
   {
@@ -156,7 +168,8 @@ public:
   }
   void Init()
   {
-    if (_unit2 == 0) {
+    if (_unit2 == 0)
+    {
       adc_oneshot_unit_init_cfg_t inicfg = {};
       inicfg.unit_id = ADC_UNIT_2;
       ESP_ERROR_CHECK(adc_oneshot_new_unit(&inicfg, &_unit2));
@@ -174,12 +187,15 @@ public:
   }
 };
 
-class Adc1 {
+class Adc1
+{
 public:
   adc_channel_t _ch;
   inline static adc_oneshot_unit_handle_t _unit1 = 0;
+
 public:
   inline static adc_atten_t atten = ADC_ATTEN_DB_11;
+
 public:
   Adc1(adc_channel_t aChan)
   {
@@ -191,7 +207,8 @@ public:
   }
   void Init()
   {
-    if (_unit1 == 0) {
+    if (_unit1 == 0)
+    {
       adc_oneshot_unit_init_cfg_t inicfg = {};
       inicfg.unit_id = ADC_UNIT_1;
       ESP_ERROR_CHECK(adc_oneshot_new_unit(&inicfg, &_unit1));
@@ -209,8 +226,8 @@ public:
   }
 };
 
-
-class Dac {
+class Dac
+{
 public:
   Dac(dac_channel_t aChan)
   {
@@ -231,8 +248,8 @@ public:
     uint8_t dval = (aVal * 0.5 + 0.5) * 256.0;
     dac_oneshot_output_voltage(_hdac, dval);
   }
+
 private:
   dac_channel_t _ch;
   dac_oneshot_handle_t _hdac;
 };
-

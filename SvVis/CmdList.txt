@@ -1,24 +1,4 @@
-
-Calib 6
-
-angleOffs 8 10.0
-dispAngleOffs 8 -1.0
-
-SetPos 5 200
-SetPos 5 -200
-
-ResetEnc 3
-
-SpeedFilt 7 1
-
-RglON  4 1
-RglOFF 4 0
-
-Rate    9 1000
-RateOFF 9 0
-
-forew 55 0 100
-forew 55 0 200
+REST 5
 
 
 

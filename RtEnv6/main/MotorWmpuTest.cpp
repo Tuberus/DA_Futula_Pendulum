@@ -15,13 +15,15 @@ void CommandLoop(){
     while(1){
         cmd = ua0.GetCommand();
         if(cmd == 2){
-
+            motPow = ua0.ReadF();
+            mot.setPow2(motPow);
+            ua0.SvMessage2("%.2f", motPow);
         }
         if(cmd == 5){
             ua0.SvMessage("RESET");
             mot.setPow2(0.0f);
             enc.cnt = 0.0f;
-        }
+        }   
     }
 }
 
@@ -44,7 +46,7 @@ void Monitor(void *args){
         if(ua0.acqON){
             //WERTE LESEN FUER DIAGRAMM
             ua0.WriteSvI16(1, mpu.getGyroX());
-            ua0.WriteSvI16(2, motPow);
+            ua0.WriteSvI16(2, enc.cnt);
         }
     }
 }
