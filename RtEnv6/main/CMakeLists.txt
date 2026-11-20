@@ -1,5 +1,5 @@
 
-idf_component_register( SRCS "MotorWmpuTest.cpp"
+idf_component_register( SRCS "FurutaDC1.cpp"
                              
   INCLUDE_DIRS "." 
                "../components/dsp" 

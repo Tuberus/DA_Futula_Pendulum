@@ -1,34 +1,33 @@
-// #pragma once
+#pragma once
+#include <algorithm>
 
-// class PID{
-// public:
-//     PID(float ki, float kd, float kp) : ki(ki), kd(kd), kp(kp) {} 
+class PendulumPID {
+public:
+    float kp = 0.002f;
+    float ki = 0.0f;
+    float kd = 0.0f;
+    float setpoint = 0.0f;
+    float outMax = 0.35f;
 
-//     double CalcPID(float datain){
-//         // PID -> G = KD + KP + KI
-//         float PrevError = 0.0f;
-//         float i;
-//         error = datain - error;
+    void reset() {
+        _integral = 0.0f;
+        _lastError = 0.0f;
+    }
 
-//         float p = kp * error;
+    float compute(float angle, float dt) {
+        float error = setpoint - angle;
 
-//         i += error;
+        _integral += error * dt;
+        _integral = std::clamp(_integral, -outMax, outMax);
 
-//         float d = (d + ) 
-//     }
+        float deriv = (error - _lastError) / dt;
+        _lastError = error;
 
-//     void reset(){
-//         error = 0.0f;
-//         kd = 0.0f;
-//         kp = 0.0f;
-//         ki = 0.0f;
-//     }
+        float out = kp * error + ki * _integral + kd * deriv;
+        return std::clamp(out, -outMax, outMax);
+    }
 
-// private:
-//     float kd;
-//     float ki;
-//     float kp;
-//     float N;
-//     float error;
-
-// };
+private:
+    float _integral = 0.0f;
+    float _lastError = 0.0f;
+};

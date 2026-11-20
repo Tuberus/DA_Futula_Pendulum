@@ -15,12 +15,12 @@ void CommandLoop()
         cmd = ua0.GetCommand();
         if (cmd == 2)
         {
-            mot.setPow2(ua0.ReadF());
+            mot.setPow(ua0.ReadF());
             ua0.SvMessage("Motor 0.2");
         }
         if (cmd == 3)
         {
-            mot.setPow2(0.0f);
+            mot.setPow(0.0f);
             ua0.SvMessage("Stop");
         }
         if(cmd == 4){
