@@ -25,7 +25,7 @@ public:
     ::StartPwmTimer(tim);
   }
 
-  void Init() {
+  void Init(){
     ChkFeature2(FEAT_SEM);
     hpwm1 = InitPwm(tim, _in1);
     hpwm2 = InitPwm(tim, _in2);

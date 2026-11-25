@@ -9,32 +9,36 @@
 
 SvProtocol3 ua0;
 
-FurutaController balC(2E-2, 0, 0, 0, "BalC");
+FurutaController balC(0.5E-2, 2E-1, 0, 0, "BalC");
 
 constexpr int ACC_AXIS = x_idx;
 constexpr int GYRO_AXIS = y_idx;
 constexpr bool MOTOR_INV = false;
 
-constexpr int MAX_ENC_TICKS = 104;
-constexpr int MIN_ENC_TICKS = -146;
+constexpr int MAX_ENC_TICKS = 85;
+constexpr int MIN_ENC_TICKS = -85;
+
+volatile int stop_reason = 0;
 
 void DoDisplay();
 
 void ControlParams(int cmd)
 {
-  if (cmd == 200) {
+  if (cmd == 200)
+  {
     int num = ua0.ReadI16();
     (void)num;
     balC.ReadCOM(&ua0);
     ua0.SvMessage("Set PID");
   }
-  if (cmd == 201) {
+  if (cmd == 201)
+  {
     int num = ua0.ReadI16();
     (void)num;
     ua0.LockOStream();
-      ua0.WrB(200);
-      balC.WriteCOM(&ua0);
-      ua0.Flush();
+    ua0.WrB(200);
+    balC.WriteCOM(&ua0);
+    ua0.Flush();
     ua0.UnlockOStream();
     ua0.SvMessage("Get PID");
   }
@@ -43,30 +47,37 @@ void ControlParams(int cmd)
 void CommandLoop()
 {
   int cmd;
-  while (1) {
+  while (1)
+  {
     cmd = ua0.GetCommand();
-    if (cmd == 2) {
+    if (cmd == 2)
+    {
       float pow = ua0.ReadF();
       motL.setPow(MOTOR_INV ? -pow : pow);
       ua0.SvMessage("Set Pow");
     }
-    if (cmd == 3) {
+    if (cmd == 3)
+    {
       encL.cnt = 0;
       ua0.SvMessage("Reset Enc");
     }
-    if (cmd == 4) {
+    if (cmd == 4)
+    {
       balC.on = ua0.ReadI16();
-      if (!balC.on) {
+      if (!balC.on)
+      {
         vTaskDelay(2);
         motL.setPow(0.0f);
       }
       ua0.SvMessage2("RGL", balC.on);
     }
-    if (cmd == 5) {
+    if (cmd == 5)
+    {
       balC.demPos = ua0.ReadI16();
       ua0.SvMessage("Set Pos");
     }
-    if (cmd == 6) {
+    if (cmd == 6)
+    {
       calFlag = true;
       ua0.SvMessage("Cal start");
       imuGyro.CalGyro();
@@ -74,18 +85,21 @@ void CommandLoop()
       calFlag = false;
       ua0.SvMessage("Cal done!!");
     }
-    if (cmd == 7) {
+    if (cmd == 7)
+    {
       int val = ua0.ReadI16();
       encL.setBW(val);
       ua0.SvPrintf("BW: %d", val);
     }
-    if (cmd == 8) {
+    if (cmd == 8)
+    {
       float offs = ua0.ReadF();
       if (offs != -1)
         balC.angleOffs = offs;
       ua0.SvPrintf("angleOffs: %1.1f", balC.angleOffs);
     }
-    if (cmd == 10) {
+    if (cmd == 10)
+    {
       balC.angleOffs = -kalm.complAngle;
       encL.cnt = 0;
       balC.demPos = 0;
@@ -93,18 +107,24 @@ void CommandLoop()
     }
     if (cmd == 200 || cmd == 201)
       ControlParams(cmd);
+
+    if (cmd == 11)
+    {
+      ua0.SvPrintf("stopReason: %d", stop_reason);
+    }
   }
 }
 
-extern "C" void RPM_Task(void* arg)
+extern "C" void RPM_Task(void *arg)
 {
   encL.CalcFilt2();
-  if (encL.cnt > MAX_ENC_TICKS || encL.cnt < MIN_ENC_TICKS)
-    motL.setPow(0.0f);
+  // if (encL.cnt > MAX_ENC_TICKS || encL.cnt < MIN_ENC_TICKS)
+  //   motL.setPow(0.0f);
+  // stop_reason = 1;
   DoDisplay();
 }
 
-extern "C" void RglTask(void* arg)
+extern "C" void RglTask(void *arg)
 {
   if (calFlag)
     return;
@@ -114,7 +134,10 @@ extern "C" void RglTask(void* arg)
   imuAcc.CalcFilt(ACC_AXIS);
   kalm.CalcFilter(imuAcc.getFilt2(ACC_AXIS), imuGyro.getVal(GYRO_AXIS));
 
-  if (encL.cnt > MAX_ENC_TICKS || encL.cnt < MIN_ENC_TICKS) {
+  if (encL.cnt > MAX_ENC_TICKS || encL.cnt < MIN_ENC_TICKS)
+  {
+    if (balC.on)
+      stop_reason = 1;      
     balC.on = 0;
     motL.setPow(0.0f);
     return;
@@ -124,9 +147,13 @@ extern "C" void RglTask(void* arg)
 
   balC.CalcOneStep(kalm.complAngle, encL.getFrequF(), encL.cnt);
 
-  if (std::fabs(kalm.complAngle + balC.angleOffs) < 300.0f) {
+  if (std::fabs(kalm.complAngle + balC.angleOffs) < 600.0f)
+  {
     motL.setPow(MOTOR_INV ? -balC.pow : balC.pow);
-  } else {
+  }
+  else
+  {
+    stop_reason = 2;
     balC.on = 0;
     motL.setPow(0.0f);
   }
@@ -134,11 +161,13 @@ extern "C" void RglTask(void* arg)
 
 void DoDisplay()
 {
-  if (ua0.acqON) {
+  if (ua0.acqON)
+  {
     ua0.LockOStream();
     ua0.WriteSvI16(1, encL.cnt);
     ua0.WriteSvF(2, encL.getFrequ());
     ua0.WriteSvI16(3, kalm.complAngle);
+    ua0.WriteSvI16(4, stop_reason);   // Reason for Stopping 2 Enc max 3 Angle max
     ua0.Flush();
     ua0.UnlockOStream();
   }
